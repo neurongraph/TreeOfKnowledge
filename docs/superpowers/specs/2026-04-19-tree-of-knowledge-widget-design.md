@@ -170,12 +170,39 @@ POST http://localhost:11434/api/generate
 
 ---
 
+## Settings Panel
+
+A **⚙ gear button** is fixed to the top-right of the main screen. Clicking it opens a modal overlay.
+
+**Controls:**
+
+| Control | Behaviour |
+|---|---|
+| Prompt textarea | Editable prompt template; `{{text}}` is replaced with document content at call time |
+| Reset to default | Restores the built-in prompt without a page reload |
+| Save | Applies the edited prompt immediately; next summarization uses it |
+| ✕ / click outside | Closes modal without saving |
+
+**Prompt template** (default):
+
+```
+Summarize the following text concisely. Respond ONLY with valid JSON (no markdown, no code fences) in this exact shape:
+{"summary": "<2-3 sentence summary>", "concepts": ["concept1", "concept2", "concept3"]}
+
+TEXT:
+{{text}}
+```
+
+**State:** In-memory only — resets to default on page reload.
+
+---
+
 ## Browser Support
 
 | Browser | Support |
 |---|---|
 | Chrome / Edge | Full (`showDirectoryPicker` supported) |
-| Safari 15.2+ | Full |
+| Safari 15.2+ | Partial — `showDirectoryPicker` unsupported; falls back to `<input webkitdirectory>` automatically |
 | Firefox | Partial — file input fallback, no directory handle API |
 
 ---
