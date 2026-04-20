@@ -99,11 +99,17 @@ body {
   cursor: pointer;
   font-size: 0.85rem;
   color: var(--text);
-  border-left: 2px solid transparent;
+  border-left: 3px solid transparent;
   user-select: none;
 }
 .tree-node:hover              { background: var(--bg-hover); }
-.tree-node.selected           { background: var(--bg-row); border-left-color: var(--accent); color: var(--text-bright); }
+.tree-node.selected           {
+  background: rgba(96, 96, 204, 0.18);
+  border-left-color: var(--accent);
+  color: var(--text-bright);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px rgba(96, 96, 204, 0.25);
+}
 .tree-node .node-arrow        { width: 14px; flex-shrink: 0; color: var(--text-dim); }
 .tree-node .node-label        { flex: 1; }
 .tree-node .node-status       { font-size: 0.7rem; }
