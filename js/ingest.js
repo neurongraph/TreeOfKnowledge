@@ -81,7 +81,7 @@ export async function ingestDirectory(dirHandle, onProgress) {
     if (ext !== 'md' && ext !== 'pdf' && ext !== 'pptx') return null;
 
     onProgress(done, total, entry.name);
-    const content = ext === 'md'
+    const raw = ext === 'md'
       ? await parseMdHandle(entry.handle)
       : ext === 'pdf'
         ? await parsePdfHandle(entry.handle)
@@ -89,8 +89,10 @@ export async function ingestDirectory(dirHandle, onProgress) {
     done++;
     onProgress(done, total, entry.name);
 
+    const content    = typeof raw === 'object' ? raw.content    : raw;
+    const pageImages = typeof raw === 'object' ? raw.pageImages : [];
     return {
-      id: entry.path, title: titleFromName(entry.name), content,
+      id: entry.path, title: titleFromName(entry.name), content, pageImages,
       children: [], summary: null, concepts: [], status: 'pending', expanded: false,
     };
   }
@@ -148,7 +150,7 @@ export async function buildTreeFromFileList(files, onProgress) {
 
     onProgress(done, total, file.name);
     const ext = file.name.split('.').pop().toLowerCase();
-    const content = ext === 'md'
+    const raw = ext === 'md'
       ? stripHtml(window.marked.parse(await file.text()))
       : ext === 'pdf'
         ? await parsePdfFile(file)
@@ -156,8 +158,10 @@ export async function buildTreeFromFileList(files, onProgress) {
     done++;
     onProgress(done, total, file.name);
 
+    const content    = typeof raw === 'object' ? raw.content    : raw;
+    const pageImages = typeof raw === 'object' ? raw.pageImages : [];
     const fileNode = {
-      id: file.webkitRelativePath, title: titleFromName(file.name), content,
+      id: file.webkitRelativePath, title: titleFromName(file.name), content, pageImages,
       children: [], summary: null, concepts: [], status: 'pending', expanded: false,
     };
     const parentPath = parts.slice(0, parts.length - 1).join('/');
@@ -188,20 +192,42 @@ async function parsePdfHandle(fileHandle) {
   return parsePdfFile(await fileHandle.getFile());
 }
 
+const IMAGE_OPS = new Set([82, 83, 84, 85, 86]);
+
 async function parsePdfFile(file) {
   const arrayBuffer = await file.arrayBuffer();
   const pdfjsLib = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist/build/pdf.min.mjs');
   pdfjsLib.GlobalWorkerOptions.workerSrc =
     'https://cdn.jsdelivr.net/npm/pdfjs-dist/build/pdf.worker.min.mjs';
   const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-  const pages = await Promise.all(
-    Array.from({ length: pdf.numPages }, (_, i) =>
-      pdf.getPage(i + 1).then(p => p.getTextContent()).then(tc =>
-        tc.items.map(item => item.str).join(' ')
-      )
-    )
-  );
-  return pages.join('\n').replace(/\s+/g, ' ').trim();
+
+  const textParts = [];
+  const pageImages = [];
+
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+
+    const [tc, ops] = await Promise.all([page.getTextContent(), page.getOperatorList()]);
+    textParts.push(tc.items.map(item => item.str).join(' '));
+
+    if (ops.fnArray.some(fn => IMAGE_OPS.has(fn))) {
+      pageImages.push(await renderPageToBase64(page));
+    }
+  }
+
+  return {
+    content:    textParts.join('\n').replace(/\s+/g, ' ').trim(),
+    pageImages,
+  };
+}
+
+async function renderPageToBase64(page) {
+  const viewport = page.getViewport({ scale: 1.5 });
+  const canvas = document.createElement('canvas');
+  canvas.width  = viewport.width;
+  canvas.height = viewport.height;
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+  return canvas.toDataURL('image/jpeg', 0.85).split(',')[1];
 }
 
 async function parsePptxFile(file) {

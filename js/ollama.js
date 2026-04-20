@@ -34,6 +34,7 @@ export async function summarize(node, type, onToken) {
         stream:      true,
         num_predict: CONFIG.maxTokens,
         prompt,
+        ...(node.pageImages?.length ? { images: node.pageImages } : {}),
       }),
       signal: controller.signal,
     });
