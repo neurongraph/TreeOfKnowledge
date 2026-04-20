@@ -1,0 +1,26 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #0d0d1a;
+  --bg-panel:    #12122a;
+  --bg-row:      #1a1a3a;
+  --bg-hover:    #1e1e3a;
+  --border:      #2a2a4a;
+  --accent:      #6060cc;
+  --text:        #c0c0e0;
+  --text-dim:    #7070a0;
+  --text-bright: #e0e0ff;
+  --green:       #60c080;
+  --red:         #c06060;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.screen        { display: none; height: 100vh; }
+.screen.active { display: flex; }
