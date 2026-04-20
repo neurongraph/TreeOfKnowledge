@@ -24,3 +24,50 @@ body {
 
 .screen        { display: none; height: 100vh; }
 .screen.active { display: flex; }
+
+/* ── Welcome ───────────────────────────────────────────── */
+#screen-welcome {
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1rem;
+}
+.welcome-title    { font-size: 2rem; font-weight: 700; color: var(--text-bright); }
+.welcome-subtitle { font-size: 0.9rem; color: var(--text-dim); }
+.welcome-hint     { font-size: 0.75rem; color: var(--text-dim); opacity: 0.6; }
+
+.btn-primary {
+  background: #3a3a8a;
+  color: var(--text-bright);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 28px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-top: 0.5rem;
+}
+.btn-primary:hover { background: var(--accent); }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--text-dim);
+  border: none;
+  font-size: 0.75rem;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ── Ingest ────────────────────────────────────────────── */
+#screen-ingest {
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 1rem;
+}
+.ingest-label  { font-size: 1rem; color: var(--text); }
+.ingest-file   { font-size: 0.75rem; color: var(--text-dim); }
+.progress-bar  { width: 360px; height: 8px; background: var(--bg-row); border-radius: 8px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #a0a0f0); border-radius: 8px; transition: width 0.2s; }
+
+/* ── Main layout ───────────────────────────────────────── */
+#screen-main { flex-direction: row; overflow: hidden; }
