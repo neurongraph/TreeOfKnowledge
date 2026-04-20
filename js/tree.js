@@ -64,12 +64,22 @@ function buildNodeEl(node, depth, treeContainer) {
 
   row.addEventListener('click', () => {
     setSelected(node.id);
-    if (!isFolder && node.status === 'pending') {
+    if (isFolder) {
+      triggerChildLeafSummaries(node);
+    } else if (node.status === 'pending') {
       triggerSummary(node, 'leaf');
     }
   });
 
   return wrapper;
+}
+
+async function triggerChildLeafSummaries(folderNode) {
+  for (const child of folderNode.children) {
+    if (child.children.length === 0 && child.status === 'pending') {
+      await triggerSummary(child, 'leaf');
+    }
+  }
 }
 
 async function triggerSummary(node, type) {
