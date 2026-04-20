@@ -149,6 +149,6 @@ function finishIngest(root) {
   renderTable(tableEl);
 
   on('tree:change',    () => renderTree(treeEl));
-  on('select:change',  () => renderTable(tableEl));
+  on('select:change',  () => { renderTree(treeEl); renderTable(tableEl); });
   on('summary:change', () => renderTable(tableEl));
 }
