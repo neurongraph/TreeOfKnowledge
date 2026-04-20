@@ -14,17 +14,23 @@ function showScreen(name) {
   screens[name].classList.add('active');
 }
 
+const hasDirectoryPicker = typeof window.showDirectoryPicker === 'function';
+
 // ── Welcome screen ──────────────────────────────────────
 screens.welcome.innerHTML = `
   <h1 class="welcome-title">Tree of Knowledge</h1>
   <p class="welcome-subtitle">Explore books and documents as an interactive knowledge tree</p>
   <button class="btn-primary" id="btn-open">📂 Open Folder</button>
   <p class="welcome-hint">Supports .md and .pdf — folders become sections</p>
-  <button class="btn-secondary" id="btn-files">or select files manually (Firefox)</button>
+  <button class="btn-secondary" id="btn-files">or select files manually</button>
   <input type="file" id="input-files" multiple accept=".md,.pdf" webkitdirectory style="display:none">
 `;
 
 document.getElementById('btn-open').addEventListener('click', async () => {
+  if (!hasDirectoryPicker) {
+    document.getElementById('input-files').click();
+    return;
+  }
   try {
     const dirHandle = await window.showDirectoryPicker();
     await runIngest(dirHandle);
