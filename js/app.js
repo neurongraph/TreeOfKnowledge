@@ -1,4 +1,4 @@
-import { setTree, setSelected, on } from './store.js';
+import { setTree, setSelected, on, getPromptTemplate, setPromptTemplate, resetPromptTemplate } from './store.js';
 import { ingestDirectory, buildTreeFromFileList } from './ingest.js';
 import { renderTree }  from './tree.js';
 import { renderTable } from './table.js';
@@ -77,6 +77,61 @@ async function runIngestFiles(files) {
   finishIngest(root);
 }
 
+// ── Settings ─────────────────────────────────────────────
+function mountSettings(mainEl) {
+  const btn = document.createElement('button');
+  btn.id = 'btn-settings';
+  btn.className = 'btn-settings';
+  btn.title = 'Settings';
+  btn.textContent = '⚙';
+  mainEl.appendChild(btn);
+
+  const overlay = document.createElement('div');
+  overlay.className = 'settings-overlay';
+  overlay.innerHTML = `
+    <div class="settings-modal">
+      <div class="settings-header">
+        <h2 class="settings-title">Settings</h2>
+        <button class="settings-close" id="btn-settings-close">✕</button>
+      </div>
+      <div class="settings-body">
+        <label class="settings-label">Summarization Prompt</label>
+        <p class="settings-hint">Use <code>{{text}}</code> where document content should be inserted. The model must return JSON with <code>"summary"</code> and <code>"concepts"</code> fields.</p>
+        <textarea class="settings-textarea" id="prompt-editor"></textarea>
+      </div>
+      <div class="settings-footer">
+        <button class="btn-secondary" id="btn-reset-prompt">Reset to default</button>
+        <button class="btn-primary" id="btn-save-settings">Save</button>
+      </div>
+    </div>
+  `;
+  mainEl.appendChild(overlay);
+
+  btn.addEventListener('click', () => {
+    document.getElementById('prompt-editor').value = getPromptTemplate();
+    overlay.classList.add('open');
+  });
+
+  document.getElementById('btn-settings-close').addEventListener('click', () => {
+    overlay.classList.remove('open');
+  });
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+
+  document.getElementById('btn-reset-prompt').addEventListener('click', () => {
+    resetPromptTemplate();
+    document.getElementById('prompt-editor').value = getPromptTemplate();
+  });
+
+  document.getElementById('btn-save-settings').addEventListener('click', () => {
+    const val = document.getElementById('prompt-editor').value.trim();
+    if (val) setPromptTemplate(val);
+    overlay.classList.remove('open');
+  });
+}
+
 function finishIngest(root) {
   setTree(root);
   setSelected(root.id);
@@ -85,6 +140,7 @@ function finishIngest(root) {
     <div id="panel-table"></div>
   `;
   showScreen('main');
+  mountSettings(screens.main);
 
   const treeEl  = document.getElementById('panel-tree');
   const tableEl = document.getElementById('panel-table');

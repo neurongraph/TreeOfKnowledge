@@ -70,7 +70,7 @@ body {
 .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #a0a0f0); border-radius: 8px; transition: width 0.2s; }
 
 /* ── Main layout ───────────────────────────────────────── */
-#screen-main { flex-direction: row; overflow: hidden; }
+#screen-main { flex-direction: row; overflow: hidden; position: relative; }
 
 /* ── Tree panel ────────────────────────────────────────── */
 #panel-tree {
@@ -160,6 +160,99 @@ body {
   font-size: 0.7rem;
   margin: 2px 2px 0 0;
   white-space: nowrap;
+}
+
+/* ── Settings button ───────────────────────────────────── */
+.btn-settings {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 1rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+.btn-settings:hover { background: var(--bg-hover); color: var(--text-bright); }
+
+/* ── Settings modal ────────────────────────────────────── */
+.settings-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.settings-overlay.open { display: flex; }
+
+.settings-modal {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  width: min(560px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+}
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-title { font-size: 1rem; font-weight: 600; color: var(--text-bright); }
+.settings-close {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.settings-close:hover { color: var(--text-bright); background: var(--bg-hover); }
+
+.settings-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.settings-label { font-size: 0.8rem; font-weight: 600; color: var(--text); }
+.settings-hint  { font-size: 0.75rem; color: var(--text-dim); line-height: 1.5; }
+.settings-hint code { background: var(--bg-row); padding: 1px 5px; border-radius: 3px; color: #a0a0f0; }
+.settings-textarea {
+  width: 100%;
+  height: 220px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: monospace;
+  font-size: 0.8rem;
+  padding: 10px;
+  resize: vertical;
+  line-height: 1.5;
+}
+.settings-textarea:focus { outline: none; border-color: var(--accent); }
+
+.settings-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
 }
 
 /* ── Scrollbars ────────────────────────────────────────── */

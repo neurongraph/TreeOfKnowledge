@@ -2,6 +2,18 @@ let _tree     = null;
 let _selected = null;
 const _listeners = {};
 
+export const DEFAULT_PROMPT =
+`Summarize the following text concisely. Respond ONLY with valid JSON (no markdown, no code fences) in this exact shape:
+{"summary": "<2-3 sentence summary>", "concepts": ["concept1", "concept2", "concept3"]}
+
+TEXT:
+{{text}}`;
+
+let _promptTemplate = DEFAULT_PROMPT;
+export function getPromptTemplate()    { return _promptTemplate; }
+export function setPromptTemplate(t)   { _promptTemplate = t; }
+export function resetPromptTemplate()  { _promptTemplate = DEFAULT_PROMPT; }
+
 export function setTree(root)   { _tree = root;   emit('tree:change', root); }
 export function getTree()       { return _tree; }
 export function setSelected(id) { _selected = id; emit('select:change', id); }

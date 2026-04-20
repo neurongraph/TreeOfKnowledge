@@ -1,7 +1,8 @@
 import { buildFolderInput } from './ingest.js';
+import { getPromptTemplate } from './store.js';
 
 /**
- * Builds the Ollama prompt for a node.
+ * Builds the Ollama prompt for a node using the current prompt template.
  * type: 'leaf' | 'folder'
  * folderInput: pre-built string (optional; auto-built from children if omitted)
  */
@@ -10,11 +11,7 @@ export function buildPrompt(node, type, folderInput) {
     ? (folderInput ?? buildFolderInput(node.children ?? []))
     : node.content;
 
-  return `Summarize the following text concisely. Respond ONLY with valid JSON (no markdown, no code fences) in this exact shape:
-{"summary": "<2-3 sentence summary>", "concepts": ["concept1", "concept2", "concept3"]}
-
-TEXT:
-${text}`;
+  return getPromptTemplate().replace('{{text}}', text);
 }
 
 /**
