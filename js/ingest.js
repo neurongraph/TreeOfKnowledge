@@ -78,12 +78,14 @@ export async function ingestDirectory(dirHandle, onProgress) {
     }
 
     const ext = entry.name.split('.').pop().toLowerCase();
-    if (ext !== 'md' && ext !== 'pdf') return null;
+    if (ext !== 'md' && ext !== 'pdf' && ext !== 'pptx') return null;
 
     onProgress(done, total, entry.name);
     const content = ext === 'md'
       ? await parseMdHandle(entry.handle)
-      : await parsePdfHandle(entry.handle);
+      : ext === 'pdf'
+        ? await parsePdfHandle(entry.handle)
+        : await parsePptxFile(await entry.handle.getFile());
     done++;
     onProgress(done, total, entry.name);
 
@@ -115,7 +117,7 @@ export async function ingestDirectory(dirHandle, onProgress) {
 export async function buildTreeFromFileList(files, onProgress) {
   const supported = files.filter(f => {
     const ext = f.name.split('.').pop().toLowerCase();
-    return ext === 'md' || ext === 'pdf';
+    return ext === 'md' || ext === 'pdf' || ext === 'pptx';
   }).sort((a, b) => a.webkitRelativePath.localeCompare(b.webkitRelativePath));
 
   const total = supported.length;
@@ -148,7 +150,9 @@ export async function buildTreeFromFileList(files, onProgress) {
     const ext = file.name.split('.').pop().toLowerCase();
     const content = ext === 'md'
       ? stripHtml(window.marked.parse(await file.text()))
-      : await parsePdfFile(file);
+      : ext === 'pdf'
+        ? await parsePdfFile(file)
+        : await parsePptxFile(file);
     done++;
     onProgress(done, total, file.name);
 
@@ -198,4 +202,33 @@ async function parsePdfFile(file) {
     )
   );
   return pages.join('\n').replace(/\s+/g, ' ').trim();
+}
+
+async function parsePptxFile(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const JSZipModule = await import('https://esm.sh/jszip@3');
+  const JSZip = JSZipModule.default ?? JSZipModule;
+  const zip = await JSZip.loadAsync(arrayBuffer);
+
+  const slideNames = Object.keys(zip.files)
+    .filter(name => /^ppt\/slides\/slide\d+\.xml$/.test(name))
+    .sort((a, b) => {
+      const n = s => parseInt(s.match(/slide(\d+)\.xml$/)[1]);
+      return n(a) - n(b);
+    });
+
+  const parts = await Promise.all(slideNames.map(async slideName => {
+    const slideXml  = await zip.files[slideName].async('string');
+    const slideText = extractTextFromXml(slideXml);
+
+    const notesName = slideName
+      .replace('ppt/slides/slide', 'ppt/notesSlides/notesSlide');
+    const notesText = zip.files[notesName]
+      ? extractNotesFromXml(await zip.files[notesName].async('string'))
+      : '';
+
+    return [slideText, notesText].filter(Boolean).join('\n');
+  }));
+
+  return parts.filter(Boolean).join('\n\n').replace(/\s+/g, ' ').trim();
 }

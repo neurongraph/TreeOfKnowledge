@@ -23,7 +23,7 @@ screens.welcome.innerHTML = `
   <button class="btn-primary" id="btn-open">📂 Open Folder</button>
   <p class="welcome-hint">Supports .md and .pdf — folders become sections</p>
   <button class="btn-secondary" id="btn-files">or select files manually</button>
-  <input type="file" id="input-files" multiple accept=".md,.pdf" webkitdirectory style="display:none">
+  <input type="file" id="input-files" multiple accept=".md,.pdf,.pptx" webkitdirectory style="display:none">
 `;
 
 document.getElementById('btn-open').addEventListener('click', async () => {
