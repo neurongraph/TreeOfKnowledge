@@ -14,6 +14,16 @@ export function getPromptTemplate()    { return _promptTemplate; }
 export function setPromptTemplate(t)   { _promptTemplate = t; }
 export function resetPromptTemplate()  { _promptTemplate = DEFAULT_PROMPT; }
 
+export const DEFAULT_SETTINGS = {
+  ollamaUrl: 'http://localhost:11434',
+  model:     'llama3.2',
+  timeout:   30000,
+};
+
+let _settings = { ...DEFAULT_SETTINGS };
+export function getSettings()          { return _settings; }
+export function updateSettings(patch)  { Object.assign(_settings, patch); }
+
 export function setTree(root)   { _tree = root;   emit('tree:change', root); }
 export function getTree()       { return _tree; }
 export function setSelected(id) { _selected = id; emit('select:change', id); }

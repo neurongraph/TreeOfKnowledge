@@ -238,6 +238,32 @@ body {
 .settings-label { font-size: 0.8rem; font-weight: 600; color: var(--text); }
 .settings-hint  { font-size: 0.75rem; color: var(--text-dim); line-height: 1.5; }
 .settings-hint code { background: var(--bg-row); padding: 1px 5px; border-radius: 3px; color: #a0a0f0; }
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.settings-row .settings-label { min-width: 130px; flex-shrink: 0; }
+
+.settings-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: monospace;
+  font-size: 0.8rem;
+  padding: 6px 10px;
+}
+.settings-input--short { max-width: 90px; flex: none; }
+.settings-input:focus  { outline: none; border-color: var(--accent); }
+
+.settings-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 4px 0;
+}
+
 .settings-textarea {
   width: 100%;
   height: 220px;

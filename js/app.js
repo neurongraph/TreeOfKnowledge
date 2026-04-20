@@ -1,7 +1,15 @@
-import { setTree, setSelected, on, getPromptTemplate, setPromptTemplate, resetPromptTemplate } from './store.js';
+import { setTree, setSelected, on, getPromptTemplate, setPromptTemplate, resetPromptTemplate, getSettings, updateSettings, DEFAULT_SETTINGS } from './store.js';
 import { ingestDirectory, buildTreeFromFileList } from './ingest.js';
 import { renderTree }  from './tree.js';
 import { renderTable } from './table.js';
+
+// Seed store from CONFIG defined in index.html
+if (typeof CONFIG !== 'undefined') {
+  updateSettings({
+    ollamaUrl: CONFIG.ollamaUrl ?? DEFAULT_SETTINGS.ollamaUrl,
+    model:     CONFIG.model     ?? DEFAULT_SETTINGS.model,
+  });
+}
 
 const screens = {
   welcome: document.getElementById('screen-welcome'),
@@ -95,6 +103,19 @@ function mountSettings(mainEl) {
         <button class="settings-close" id="btn-settings-close">✕</button>
       </div>
       <div class="settings-body">
+        <div class="settings-row">
+          <label class="settings-label" for="setting-url">Ollama URL</label>
+          <input class="settings-input" id="setting-url" type="text" spellcheck="false">
+        </div>
+        <div class="settings-row">
+          <label class="settings-label" for="setting-model">Model</label>
+          <input class="settings-input" id="setting-model" type="text" spellcheck="false">
+        </div>
+        <div class="settings-row">
+          <label class="settings-label" for="setting-timeout">Timeout (seconds)</label>
+          <input class="settings-input settings-input--short" id="setting-timeout" type="number" min="5" max="300" step="5">
+        </div>
+        <div class="settings-divider"></div>
         <label class="settings-label">Summarization Prompt</label>
         <p class="settings-hint">Use <code>{{text}}</code> where document content should be inserted. The model must return JSON with <code>"summary"</code> and <code>"concepts"</code> fields.</p>
         <textarea class="settings-textarea" id="prompt-editor"></textarea>
@@ -108,7 +129,11 @@ function mountSettings(mainEl) {
   mainEl.appendChild(overlay);
 
   btn.addEventListener('click', () => {
-    document.getElementById('prompt-editor').value = getPromptTemplate();
+    const s = getSettings();
+    document.getElementById('setting-url').value     = s.ollamaUrl;
+    document.getElementById('setting-model').value   = s.model;
+    document.getElementById('setting-timeout').value = s.timeout / 1000;
+    document.getElementById('prompt-editor').value   = getPromptTemplate();
     overlay.classList.add('open');
   });
 
@@ -126,8 +151,14 @@ function mountSettings(mainEl) {
   });
 
   document.getElementById('btn-save-settings').addEventListener('click', () => {
-    const val = document.getElementById('prompt-editor').value.trim();
-    if (val) setPromptTemplate(val);
+    const url     = document.getElementById('setting-url').value.trim();
+    const model   = document.getElementById('setting-model').value.trim();
+    const timeout = parseInt(document.getElementById('setting-timeout').value, 10);
+    if (url)              updateSettings({ ollamaUrl: url });
+    if (model)            updateSettings({ model });
+    if (timeout >= 5)     updateSettings({ timeout: timeout * 1000 });
+    const prompt = document.getElementById('prompt-editor').value.trim();
+    if (prompt) setPromptTemplate(prompt);
     overlay.classList.remove('open');
   });
 }

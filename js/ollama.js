@@ -1,5 +1,5 @@
 import { buildFolderInput } from './ingest.js';
-import { getPromptTemplate } from './store.js';
+import { getPromptTemplate, getSettings } from './store.js';
 
 /**
  * Builds the Ollama prompt for a node using the current prompt template.
@@ -20,16 +20,17 @@ export function buildPrompt(node, type, folderInput) {
  */
 export async function summarize(node, type, onToken) {
   const prompt = buildPrompt(node, type);
+  const { ollamaUrl, model, timeout } = getSettings();
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30_000);
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
 
   let response;
   try {
-    response = await fetch(`${CONFIG.ollamaUrl}/api/generate`, {
+    response = await fetch(`${ollamaUrl}/api/generate`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model:       CONFIG.model,
+        model,
         stream:      true,
         num_predict: CONFIG.maxTokens,
         prompt,

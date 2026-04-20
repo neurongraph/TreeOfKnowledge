@@ -1,4 +1,4 @@
-import { getTree, getSelected, setSelected, setStatus, setSummary } from './store.js';
+import { getTree, getSelected, setSelected, setStatus, setSummary, getSettings } from './store.js';
 import { summarize } from './ollama.js';
 
 export function renderTree(container) {
@@ -102,7 +102,7 @@ async function triggerSummary(node, type) {
     const msg = err.message === 'timeout'
       ? '⚠ Timed out'
       : err.message === 'unreachable'
-        ? `⚠ Cannot connect to Ollama at ${CONFIG.ollamaUrl}`
+        ? `⚠ Cannot connect to Ollama at ${getSettings().ollamaUrl}`
         : `⚠ Error: ${err.message}`;
 
     const cell = document.querySelector(`[data-summary-id="${node.id}"]`);
