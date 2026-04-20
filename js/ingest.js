@@ -28,6 +28,30 @@ export function stripHtml(html) {
 }
 
 /**
+ * Extracts all <a:t> text nodes from a PPTX slide XML string.
+ * Uses regex rather than DOMParser so it is testable in Node.js.
+ */
+export function extractTextFromXml(xmlString) {
+  return [...xmlString.matchAll(/<a:t(?:\s[^>]*)?>([^<]*)<\/a:t>/g)]
+    .map(m => m[1])
+    .join(' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Extracts speaker-notes text from a PPTX notesSlide XML string.
+ * Only reads from the shape whose <p:ph> has type="body", skipping
+ * the slide-preview shape that would otherwise duplicate slide content.
+ */
+export function extractNotesFromXml(xmlString) {
+  const spBlocks = [...xmlString.matchAll(/<p:sp[\s\S]*?<\/p:sp>/g)].map(m => m[0]);
+  const bodyShape = spBlocks.find(sp => /<p:ph[^>]+type="body"/.test(sp));
+  if (!bodyShape) return '';
+  return extractTextFromXml(bodyShape);
+}
+
+/**
  * Entry point for Chrome/Edge/Safari: walks a FileSystemDirectoryHandle.
  * onProgress(done, total, currentFilename) called as each file is processed.
  * Returns a root Node.
