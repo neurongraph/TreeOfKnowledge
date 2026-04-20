@@ -109,3 +109,55 @@ body {
 .tree-node .node-status       { font-size: 0.7rem; }
 .tree-node .node-status.done  { color: var(--green); }
 .tree-node .node-status.error { color: var(--red); }
+
+/* ── Table panel ───────────────────────────────────────── */
+#panel-table {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--bg);
+  padding: 12px 16px;
+}
+
+.tok-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+.tok-table th {
+  text-align: left;
+  padding: 8px 10px;
+  color: var(--text-dim);
+  font-weight: 600;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 1;
+}
+.tok-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--bg-row);
+  vertical-align: top;
+}
+.tok-table tr:hover td     { background: var(--bg-hover); cursor: pointer; }
+.tok-table tr.selected td  { background: var(--bg-row); }
+
+.col-title          { white-space: nowrap; color: var(--text-bright); }
+.col-title.folder   { font-weight: 600; }
+.col-summary        { color: var(--text-dim); font-size: 0.8rem; }
+.col-summary.streaming { color: var(--text); font-style: normal; }
+
+.concept-pill {
+  display: inline-block;
+  background: #2a2a5a;
+  color: #a0a0f0;
+  border-radius: 10px;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  margin: 2px 2px 0 0;
+  white-space: nowrap;
+}
