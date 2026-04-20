@@ -49,10 +49,10 @@ function buildRow(node, depth, selectedId) {
   summaryTd.dataset.summaryId = node.id;
 
   if (node.status === 'loading') {
-    summaryTd.textContent = node.summary ?? '⏳ Generating…';
+    summaryTd.textContent = Array.isArray(node.summary) ? node.summary.join(' ') : (node.summary ?? '⏳ Generating…');
     summaryTd.dataset.streaming = '1';
   } else if (node.status === 'done') {
-    summaryTd.textContent = node.summary ?? '';
+    renderSummary(summaryTd, node.summary);
   } else if (node.status === 'error') {
     summaryTd.textContent = '⚠ Error generating summary';
   }
@@ -71,4 +71,21 @@ function buildRow(node, depth, selectedId) {
 
   tr.addEventListener('click', () => setSelected(node.id));
   return tr;
+}
+
+function renderSummary(td, summary) {
+  if (!summary) return;
+  const bullets = Array.isArray(summary) ? summary : [summary];
+  if (bullets.length <= 1) {
+    td.textContent = bullets[0] ?? '';
+    return;
+  }
+  const ul = document.createElement('ul');
+  ul.className = 'summary-bullets';
+  bullets.forEach(b => {
+    const li = document.createElement('li');
+    li.textContent = b;
+    ul.appendChild(li);
+  });
+  td.appendChild(ul);
 }

@@ -157,6 +157,14 @@ body {
 .col-summary        { color: var(--text-dim); font-size: 0.8rem; }
 .col-summary.streaming { color: var(--text); font-style: normal; }
 
+.summary-bullets {
+  margin: 0;
+  padding-left: 1.2em;
+  list-style: disc;
+}
+.summary-bullets li { margin-bottom: 0.25em; }
+.summary-bullets li:last-child { margin-bottom: 0; }
+
 .concept-pill {
   display: inline-block;
   background: #2a2a5a;

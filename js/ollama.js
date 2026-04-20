@@ -70,11 +70,10 @@ export async function summarize(node, type, onToken) {
 
   try {
     const result = JSON.parse(fullText.trim());
-    return {
-      summary:  result.summary  ?? fullText.trim(),
-      concepts: result.concepts ?? [],
-    };
+    const raw = result.summary ?? fullText.trim();
+    const summary = Array.isArray(raw) ? raw : [raw];
+    return { summary, concepts: result.concepts ?? [] };
   } catch {
-    return { summary: fullText.trim(), concepts: [] };
+    return { summary: [fullText.trim()], concepts: [] };
   }
 }

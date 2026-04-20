@@ -3,8 +3,10 @@ let _selected = null;
 const _listeners = {};
 
 export const DEFAULT_PROMPT =
-`Summarize the following text concisely. Respond ONLY with valid JSON (no markdown, no code fences) in this exact shape:
-{"summary": "<2-3 sentence summary>", "concepts": ["concept1", "concept2", "concept3"]}
+`Summarize the following text. Respond ONLY with valid JSON (no markdown, no code fences) in this exact shape:
+{"summary": ["bullet 1", "bullet 2", "bullet 3"], "concepts": ["concept1", "concept2", "concept3"]}
+
+The summary must be an array of up to 5 concise bullet points. Concepts should be 3-5 key terms.
 
 TEXT:
 {{text}}`;
