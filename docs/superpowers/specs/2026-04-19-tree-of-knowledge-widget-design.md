@@ -1,10 +1,11 @@
 # Tree of Knowledge — Widget Design
 
-**Date:** 2026-04-19
+**Date:** 2026-04-19  
+**Last updated:** 2026-04-21
 
 ## Overview
 
-A browser-only knowledge exploration widget. The user picks a local folder of Markdown and PDF files; the app ingests them into a tree structure, displays them in a split tree+table view, and uses a local Ollama model to generate AI summaries when nodes are collapsed.
+A browser-only knowledge exploration widget. The user picks a local folder of Markdown, PDF, and PowerPoint files; the app ingests them into a tree structure, displays them in a split tree+table view, and uses a local Ollama model to generate AI summaries when nodes are collapsed.
 
 ---
 
@@ -20,7 +21,7 @@ TreeOfKnowledge/
 ├── style.css           — all styles
 └── js/
     ├── app.js          — bootstraps everything, handles folder pick + screen transitions
-    ├── ingest.js       — reads directory, parses .md and .pdf, builds node tree
+    ├── ingest.js       — reads directory, parses .md / .pdf / .pptx, builds node tree
     ├── tree.js         — tree panel render + expand/collapse logic
     ├── table.js        — table panel render + row updates
     ├── ollama.js       — Ollama API calls, streaming, summary cache
@@ -31,7 +32,10 @@ TreeOfKnowledge/
 
 ```html
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist/build/pdf.min.mjs" type="module"></script>
+<!-- loaded dynamically in ingest.js when a .pdf is encountered -->
+<!-- https://cdn.jsdelivr.net/npm/pdfjs-dist/build/pdf.min.mjs -->
+<!-- loaded dynamically in ingest.js when a .pptx is encountered -->
+<!-- https://esm.sh/jszip@3 -->
 ```
 
 ### Configuration (top of index.html)
@@ -52,13 +56,14 @@ Each node in memory:
 
 ```js
 {
-  id:       string,       // unique, derived from file path
-  title:    string,       // folder/file name, leading numbers stripped
-  content:  string,       // plain text extracted from .md or .pdf
-  children: Node[],       // empty for leaf nodes
-  summary:  string|null,  // null until Ollama generates it
-  concepts: string[],     // empty until Ollama responds
-  status:   'pending' | 'loading' | 'done' | 'error'
+  id:         string,       // unique, derived from file path
+  title:      string,       // folder/file name, leading numbers stripped
+  content:    string,       // plain text extracted from .md / .pdf / .pptx
+  pageImages: string[],     // base64 JPEG strings for PDF pages that contain images (empty for non-PDF nodes)
+  children:   Node[],       // empty for leaf nodes
+  summary:    string[]|null,// null until Ollama generates it; array of up to 5 bullet strings
+  concepts:   string[],     // empty until Ollama responds
+  status:     'pending' | 'loading' | 'done' | 'error'
 }
 ```
 
@@ -80,11 +85,12 @@ Handled by `ingest.js`:
 1. Walk `FileSystemDirectoryHandle` recursively
 2. Skip hidden files/folders (names starting with `.`)
 3. Sort siblings by filename (leading numbers used for order, then stripped from title)
-4. Folders → parent nodes; `.md` / `.pdf` files → leaf nodes
+4. Folders → parent nodes; `.md` / `.pdf` / `.pptx` files → leaf nodes
 5. `.md`: parse with `marked`, strip HTML tags to get plain text
-6. `.pdf`: extract text page-by-page with `pdf.js`
-7. Show progress bar: "N of M files processed" + current filename
-8. On complete: write tree to `store`, transition to tree+table view
+6. `.pdf`: for each page — extract text via `pdf.js` + check `getOperatorList()` for image paint ops (codes 82–86); pages with images are rendered to a 1.5× JPEG canvas and stored as base64 in `node.pageImages`
+7. `.pptx`: extract slide text and speaker notes via `jszip` + XML parsing
+8. Show progress bar: "N of M files processed" + current filename
+9. On complete: write tree to `store`, transition to tree+table view
 
 ### Screen 2 — Tree + Table
 
@@ -128,7 +134,8 @@ All are cached on first generation and never re-fired.
 - Clicking a table row selects that node in the tree (and re-scopes the table)
 - Columns: **Title**, **Summary**, **Key Concepts**
 - Key Concepts rendered as pill badges
-- Summary streams in token-by-token with a blinking cursor; Key Concepts appear once full JSON is parsed
+- Summary streams in token-by-token as raw text during loading; once complete, rendered as a `<ul>` of up to 5 bullet points (single-bullet summaries render as plain text)
+- Key Concepts appear once full JSON is parsed
 
 ---
 
@@ -148,17 +155,19 @@ POST http://localhost:11434/api/generate
 {
   "model": "llama3.2",
   "stream": true,
-  "prompt": "Summarize the following text. Return JSON with two fields:
-             'summary' (2-3 sentences) and 'concepts' (array of 3-5 key concept strings).\n\nTEXT:\n{node.content}"
+  "prompt": "<prompt template with {{text}} replaced>",
+  "images": ["<base64 JPEG>", ...]   // only present if node.pageImages is non-empty
 }
 ```
+
+The `images` field is populated from `node.pageImages` — only PDF nodes whose pages contained image paint operations will have this. Vision-capable models (e.g. `gemma4`) will use the images to describe diagrams and figures alongside extracted text.
 
 **Response handling:**
 
 - Stream tokens into the Summary cell as they arrive
 - On stream complete, attempt `JSON.parse` of full response
-- If parse succeeds: populate `summary` + `concepts` fields
-- If parse fails: use raw response text as `summary`, leave `concepts` empty
+- If parse succeeds: `summary` is normalised to `string[]` (model may return a string or array); `concepts` populated from array
+- If parse fails: wrap raw response text in a single-element array as `summary`, leave `concepts` empty
 
 **Error handling:**
 
@@ -186,8 +195,10 @@ A **⚙ gear button** is fixed to the top-right of the main screen. Clicking it 
 **Prompt template** (default):
 
 ```
-Summarize the following text concisely. Respond ONLY with valid JSON (no markdown, no code fences) in this exact shape:
-{"summary": "<2-3 sentence summary>", "concepts": ["concept1", "concept2", "concept3"]}
+Summarize the following text. Respond ONLY with valid JSON (no markdown, no code fences) in this exact shape:
+{"summary": ["bullet 1", "bullet 2", "bullet 3"], "concepts": ["concept1", "concept2", "concept3"]}
+
+The summary must be an array of up to 5 concise bullet points. Concepts should be 3-5 key terms.
 
 TEXT:
 {{text}}
